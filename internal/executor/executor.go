@@ -123,7 +123,7 @@ func Execute(language string, source string) (models.RunResponse, error) {
 	if err != nil {
 		return models.RunResponse{
 			Stdout:   "",
-			Stderr:   err.Error() + "|" + string(output),
+			Stderr:   string(output),
 			ExitCode: 1,
 		}, nil
 	}

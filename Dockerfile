@@ -38,7 +38,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         g++ \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=nsjail-builder /usr/local/bin/nsjail /usr/local/bin/nsjail
-COPY --from=builder /src/config /config
 COPY --from=builder        /out/goboxd          /usr/local/bin/goboxd
 EXPOSE 8080
 ENTRYPOINT ["/usr/local/bin/goboxd"]

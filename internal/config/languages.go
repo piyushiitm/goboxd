@@ -1,7 +1,7 @@
 package config
 
 import (
-	"os"
+	_ "embed"
 
 	"gopkg.in/yaml.v3"
 )
@@ -12,17 +12,17 @@ type Language struct {
 	Run       []string `yaml:"run"`
 }
 
+//go:embed languages.yaml
+var languagesYAML []byte
+
 func LoadLanguages() (map[string]Language, error) {
-
-	data, err := os.ReadFile("config/languages.yaml")
-
-	if err != nil {
-		return nil, err
-	}
 
 	var languages map[string]Language
 
-	err = yaml.Unmarshal(data, &languages)
+	err := yaml.Unmarshal(
+		languagesYAML,
+		&languages,
+	)
 
 	if err != nil {
 		return nil, err
