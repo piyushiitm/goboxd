@@ -6,33 +6,49 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
+	"github.com/piyushiitm/goboxd/internal/config"
 	"github.com/piyushiitm/goboxd/internal/models"
 )
 
-type Language struct {
-	Extension string
-	Compile   []string
-	Run       []string
-}
+func ReplacePlaceholders(
+	command []string,
+	sourceFile string,
+	artifactFile string,
+) []string {
 
-var Languages = map[string]Language{
-	"python": {
-		Extension: ".py",
-		Run:       []string{"python3"},
-	},
+	result := make([]string, len(command))
 
-	"cpp": {
-		Extension: ".cpp",
-		Compile:   []string{"g++"},
-		Run:       []string{"./program"},
-	},
+	for i, part := range command {
+
+		part = strings.ReplaceAll(
+			part,
+			"{source}",
+			sourceFile,
+		)
+
+		part = strings.ReplaceAll(
+			part,
+			"{artifact}",
+			artifactFile,
+		)
+
+		result[i] = part
+	}
+
+	return result
 }
 
 func Execute(language string, source string) (models.RunResponse, error) {
+	languages, err := config.LoadLanguages()
 
-	languageConfig, exists := Languages[language]
+	if err != nil {
+		return models.RunResponse{}, err
+	}
+
+	languageConfig, exists := languages[language]
 
 	if !exists {
 		return models.RunResponse{}, errors.New("unsupported language")
@@ -40,7 +56,7 @@ func Execute(language string, source string) (models.RunResponse, error) {
 
 	id := uuid.New().String()
 	workspace := filepath.Join("workspace", id)
-	err := os.MkdirAll(workspace, 0755)
+	err = os.MkdirAll(workspace, 0755)
 	if err != nil {
 		return models.RunResponse{}, err
 	}
@@ -48,6 +64,11 @@ func Execute(language string, source string) (models.RunResponse, error) {
 	sourceFile := filepath.Join(
 		workspace,
 		"source"+languageConfig.Extension,
+	)
+
+	artifactFile := filepath.Join(
+		workspace,
+		"program",
 	)
 
 	err = os.WriteFile(
@@ -60,9 +81,15 @@ func Execute(language string, source string) (models.RunResponse, error) {
 		return models.RunResponse{}, err
 	}
 
-	cmd := exec.Command(
-		languageConfig.Run[0],
+	runCommand := ReplacePlaceholders(
+		languageConfig.Run,
 		sourceFile,
+		artifactFile,
+	)
+
+	cmd := exec.Command(
+		runCommand[0],
+		runCommand[1:]...,
 	)
 
 	output, err := cmd.CombinedOutput()

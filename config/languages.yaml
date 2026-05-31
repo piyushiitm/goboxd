@@ -1,0 +1,18 @@
+python:
+  extension: ".py"
+
+  run:
+    - "python3"
+    - "{source}"
+
+cpp:
+  extension: ".cpp"
+
+  compile:
+    - "g++"
+    - "{source}"
+    - "-o"
+    - "{artifact}"
+
+  run:
+    - "{artifact}"
