@@ -1,3 +1,5 @@
-module github.com/thesouldev/goboxd
+module github.com/piyushiitm/goboxd
 
 go 1.23
+
+require github.com/google/uuid v1.6.0 // indirect
