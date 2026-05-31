@@ -97,13 +97,33 @@ func Execute(language string, source string) (models.RunResponse, error) {
 		output, err := cmd.CombinedOutput()
 
 		if err != nil {
+
+			errorMessage := string(output)
+
+			if errorMessage == "" {
+				errorMessage = err.Error()
+			}
+
+			errorMessage = strings.ReplaceAll(
+				errorMessage,
+				sourceFile,
+				"source"+languageConfig.Extension,
+			)
+
+			errorMessage = strings.ReplaceAll(
+				errorMessage,
+				filepath.Dir(sourceFile)+"/",
+				"",
+			)
+
 			return models.RunResponse{
 				Stdout:   "",
-				Stderr:   string(output),
+				Stderr:   errorMessage,
 				ExitCode: 1,
 			}, nil
 		}
 	}
+
 	runCommand := ReplacePlaceholders(
 		languageConfig.Run,
 		sourceFile,
@@ -121,9 +141,28 @@ func Execute(language string, source string) (models.RunResponse, error) {
 	fmt.Println("Language:", language)
 
 	if err != nil {
+
+		errorMessage := string(output)
+
+		if errorMessage == "" {
+			errorMessage = err.Error()
+		}
+
+		errorMessage = strings.ReplaceAll(
+			errorMessage,
+			sourceFile,
+			"source"+languageConfig.Extension,
+		)
+
+		errorMessage = strings.ReplaceAll(
+			errorMessage,
+			filepath.Dir(sourceFile)+"/",
+			"",
+		)
+
 		return models.RunResponse{
 			Stdout:   "",
-			Stderr:   string(output),
+			Stderr:   errorMessage,
 			ExitCode: 1,
 		}, nil
 	}
