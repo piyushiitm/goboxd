@@ -81,6 +81,29 @@ func Execute(language string, source string) (models.RunResponse, error) {
 		return models.RunResponse{}, err
 	}
 
+	if len(languageConfig.Compile) > 0 {
+
+		compileCommand := ReplacePlaceholders(
+			languageConfig.Compile,
+			sourceFile,
+			artifactFile,
+		)
+
+		cmd := exec.Command(
+			compileCommand[0],
+			compileCommand[1:]...,
+		)
+
+		output, err := cmd.CombinedOutput()
+
+		if err != nil {
+			return models.RunResponse{
+				Stdout:   "",
+				Stderr:   string(output),
+				ExitCode: 1,
+			}, nil
+		}
+	}
 	runCommand := ReplacePlaceholders(
 		languageConfig.Run,
 		sourceFile,
