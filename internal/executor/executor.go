@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/piyushiitm/goboxd/internal/config"
@@ -100,6 +101,8 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		Stderr: "",
 	}
 
+	buildStart := time.Now()
+
 	if len(languageConfig.Compile) > 0 {
 
 		compileCommand := ReplacePlaceholders(
@@ -138,19 +141,22 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			return models.RunResponse{
 				Status: "compile_error",
 				Build: &models.BuildResult{
-					Status: "compile_error",
-					Stdout: "",
-					Stderr: errorMessage,
+					Status:     "compile_error",
+					Stdout:     "",
+					Stderr:     errorMessage,
+					DurationMS: time.Since(buildStart).Milliseconds(),
 				},
 			}, nil
 		}
 	}
 
+	buildResult.DurationMS = time.Since(buildStart).Milliseconds()
+
 	results := []models.TestResult{}
 	overallStatus := "accepted"
 
 	for _, test := range req.Tests {
-
+		testStart := time.Now()
 		runCommand := ReplacePlaceholders(
 			languageConfig.Run,
 			sourceFile,
@@ -182,11 +188,13 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			testStatus = "wrong_output"
 			overallStatus = "wrong_output"
 		}
+		duration := time.Since(testStart).Milliseconds()
 
 		results = append(results, models.TestResult{
-			Status: testStatus,
-			Stdout: actual,
-			Stderr: "",
+			Status:     testStatus,
+			Stdout:     actual,
+			Stderr:     "",
+			DurationMS: duration,
 		})
 	}
 
