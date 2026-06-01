@@ -94,6 +94,12 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		return models.RunResponse{}, err
 	}
 
+	buildResult := &models.BuildResult{
+		Status: "ok",
+		Stdout: "",
+		Stderr: "",
+	}
+
 	if len(languageConfig.Compile) > 0 {
 
 		compileCommand := ReplacePlaceholders(
@@ -131,6 +137,11 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 
 			return models.RunResponse{
 				Status: "compile_error",
+				Build: &models.BuildResult{
+					Status: "compile_error",
+					Stdout: "",
+					Stderr: errorMessage,
+				},
 			}, nil
 		}
 	}
@@ -158,6 +169,7 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		if err != nil {
 			return models.RunResponse{
 				Status: "runtime_error",
+				Build:  buildResult,
 			}, nil
 		}
 
@@ -180,6 +192,7 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 
 	return models.RunResponse{
 		Status: overallStatus,
+		Build:  buildResult,
 		Tests:  results,
 	}, nil
 }
