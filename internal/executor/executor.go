@@ -165,7 +165,16 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		}, nil
 	}
 
+	actual := strings.TrimSpace(string(output))
+	expected := strings.TrimSpace(req.Tests[0].ExpectedStdout)
+
+	status := "accepted"
+
+	if actual != expected {
+		status = "wrong_output"
+	}
+
 	return models.RunResponse{
-		Status: "accepted",
+		Status: status,
 	}, nil
 }
