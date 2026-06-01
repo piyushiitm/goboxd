@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os/exec"
+	"runtime"
 	"strings"
 
 	"github.com/piyushiitm/goboxd/internal/config"
@@ -81,19 +82,35 @@ func Info(w http.ResponseWriter, r *http.Request) {
 
 	languageList := []map[string]string{}
 
-	for id := range languages {
+	for id, lang := range languages {
+
+		version := ""
+
+		cmd := exec.Command(
+			lang.VersionCommand.Command,
+			lang.VersionCommand.Args...,
+		)
+
+		output, err := cmd.CombinedOutput()
+
+		if err == nil {
+			version = strings.TrimSpace(string(output))
+		}
+
 		languageList = append(
 			languageList,
 			map[string]string{
-				"id": id,
+				"id":      id,
+				"version": version,
 			},
 		)
 	}
 
 	response := map[string]interface{}{
 		"build_info": map[string]string{
-			"version": "0.1.0",
-			"commit":  "dev",
+			"version":    "0.1.0",
+			"commit":     "dev",
+			"go_version": runtime.Version(),
 		},
 		"languages": languageList,
 	}
