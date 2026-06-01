@@ -102,6 +102,25 @@ func Info(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func writeError(
+	w http.ResponseWriter,
+	code string,
+	message string,
+	status int,
+) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	json.NewEncoder(w).Encode(
+		models.ErrorResponse{
+			Error: models.ErrorDetail{
+				Code:    code,
+				Message: message,
+			},
+		},
+	)
+}
+
 func Run(w http.ResponseWriter, r *http.Request) {
 
 	var req models.RunRequest
@@ -109,14 +128,70 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		http.Error(w, "invalid json", http.StatusBadRequest)
+		writeError(
+			w,
+			"invalid_json",
+			err.Error(),
+			http.StatusBadRequest,
+		)
 		return
 	}
 
 	err = validator.Validate(req)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		switch err {
+
+		case validator.ErrMissingLanguage:
+			writeError(
+				w,
+				"missing_language",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		case validator.ErrMissingSource:
+			writeError(
+				w,
+				"missing_source",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		case validator.ErrMissingTests:
+			writeError(
+				w,
+				"missing_tests",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		case validator.ErrInvalidSourceFilename:
+			writeError(
+				w,
+				"invalid_filename",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		case validator.ErrInvalidArtifactFilename:
+			writeError(
+				w,
+				"invalid_filename",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		default:
+			writeError(
+				w,
+				"validation_error",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+		}
+
 		return
 	}
 
