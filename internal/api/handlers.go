@@ -6,6 +6,7 @@ import (
 
 	"github.com/piyushiitm/goboxd/internal/executor"
 	"github.com/piyushiitm/goboxd/internal/models"
+	"github.com/piyushiitm/goboxd/internal/validator"
 )
 
 func Healthz(w http.ResponseWriter, r *http.Request) {
@@ -60,6 +61,13 @@ func Run(w http.ResponseWriter, r *http.Request) {
 		req.Language,
 		req.Source,
 	)
+
+	err = validator.Validate(req)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
