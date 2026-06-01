@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,6 +42,32 @@ func ReplacePlaceholders(
 	return result
 }
 
+func ResolveLimits(
+	defaults config.Limits,
+	override *models.Limits,
+) config.Limits {
+
+	result := defaults
+
+	if override == nil {
+		return result
+	}
+
+	if override.WallTimeS > 0 {
+		result.WallTimeS = override.WallTimeS
+	}
+
+	if override.MemoryKB > 0 {
+		result.MemoryKB = override.MemoryKB
+	}
+
+	if override.MaxProcesses > 0 {
+		result.MaxProcesses = override.MaxProcesses
+	}
+
+	return result
+}
+
 func Execute(req models.RunRequest) (models.RunResponse, error) {
 	language := req.Language
 	source := req.Source
@@ -54,6 +81,16 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 
 	if !exists {
 		return models.RunResponse{}, validator.ErrUnknownLanguage
+	}
+	effectiveRunLimits := ResolveLimits(
+		languageConfig.DefaultRunLimits,
+		nil,
+	)
+	if req.Run != nil {
+		effectiveRunLimits = ResolveLimits(
+			languageConfig.DefaultRunLimits,
+			req.Run.Limits,
+		)
 	}
 
 	id := uuid.New().String()
@@ -163,7 +200,14 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			artifactFile,
 		)
 
-		cmd := exec.Command(
+		ctx, cancel := context.WithTimeout(
+			context.Background(),
+			time.Duration(effectiveRunLimits.WallTimeS)*time.Second,
+		)
+		defer cancel()
+
+		cmd := exec.CommandContext(
+			ctx,
 			runCommand[0],
 			runCommand[1:]...,
 		)
@@ -171,6 +215,21 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		cmd.Stdin = strings.NewReader(test.Stdin)
 
 		output, err := cmd.CombinedOutput()
+
+		if ctx.Err() == context.DeadlineExceeded {
+
+			results = append(results, models.TestResult{
+				Status:       "time_limit_exceeded",
+				Stdout:       "",
+				Stderr:       "",
+				DurationMS:   time.Since(testStart).Milliseconds(),
+				MemoryPeakKB: 0,
+			})
+
+			overallStatus = "time_limit_exceeded"
+
+			continue
+		}
 
 		if err != nil {
 			return models.RunResponse{
