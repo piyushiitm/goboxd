@@ -54,6 +54,19 @@ func Readyz(w http.ResponseWriter, r *http.Request) {
 			"version": strings.TrimSpace(string(output)),
 		}
 	}
+
+	_, err = exec.LookPath("nsjail")
+
+	if err != nil {
+		results["nsjail"] = map[string]interface{}{
+			"ok": false,
+		}
+		status = "degraded"
+	} else {
+		results["nsjail"] = map[string]interface{}{
+			"ok": true,
+		}
+	}
 	w.Header().Set("Content-Type", "application/json")
 	if status == "degraded" {
 		w.WriteHeader(http.StatusServiceUnavailable)
