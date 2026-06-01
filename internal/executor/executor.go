@@ -41,7 +41,9 @@ func ReplacePlaceholders(
 	return result
 }
 
-func Execute(language string, source string) (models.RunResponse, error) {
+func Execute(req models.RunRequest) (models.RunResponse, error) {
+	language := req.Language
+	source := req.Source
 	languages, err := config.LoadLanguages()
 
 	if err != nil {

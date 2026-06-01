@@ -57,10 +57,7 @@ func Run(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := executor.Execute(
-		req.Language,
-		req.Source,
-	)
+	response, err := executor.Execute(req)
 
 	err = validator.Validate(req)
 
