@@ -2,6 +2,7 @@ package config
 
 import (
 	_ "embed"
+	"os/exec"
 
 	"gopkg.in/yaml.v3"
 )
@@ -44,6 +45,41 @@ func LoadLanguages() (map[string]Language, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	for id, lang := range languages {
+
+		path, err := exec.LookPath(
+			lang.VersionCommand.Command,
+		)
+
+		if err == nil {
+			lang.VersionCommand.Command = path
+		}
+
+		if len(lang.Compile) > 0 {
+
+			path, err := exec.LookPath(
+				lang.Compile[0],
+			)
+
+			if err == nil {
+				lang.Compile[0] = path
+			}
+		}
+
+		if len(lang.Run) > 0 {
+
+			path, err := exec.LookPath(
+				lang.Run[0],
+			)
+
+			if err == nil {
+				lang.Run[0] = path
+			}
+		}
+
+		languages[id] = lang
 	}
 
 	return languages, nil

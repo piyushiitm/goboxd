@@ -1,6 +1,9 @@
 package sandbox
 
-import "os/exec"
+import (
+	"os/exec"
+	"strconv"
+)
 
 type NSJailRunner struct{}
 
@@ -13,10 +16,16 @@ func (r NSJailRunner) Command(
 	args := []string{
 		"--mode",
 		"o",
+
+		"--chroot",
+		"/",
+
 		"--cwd",
 		workspace,
+
 		"--time_limit",
-		string(rune(wallTimeS)),
+		strconv.Itoa(wallTimeS),
+
 		"--",
 	}
 

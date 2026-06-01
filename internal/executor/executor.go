@@ -316,8 +316,8 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 
 		runCommand := ReplacePlaceholders(
 			languageConfig.Run,
-			sourceFile,
-			artifactFile,
+			sourceName,
+			artifactName,
 			workspace,
 			nil,
 			runFlags,
@@ -329,7 +329,7 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		)
 		defer cancel()
 
-		runner := sandbox.NativeRunner{}
+		runner := sandbox.NSJailRunner{}
 
 		cmd := runner.Command(
 			runCommand,
