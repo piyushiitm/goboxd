@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/piyushiitm/goboxd/internal/config"
 	"github.com/piyushiitm/goboxd/internal/models"
+	"github.com/piyushiitm/goboxd/internal/sandbox"
 	"github.com/piyushiitm/goboxd/internal/validator"
 )
 
@@ -328,10 +329,12 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		)
 		defer cancel()
 
-		cmd := exec.CommandContext(
-			ctx,
-			runCommand[0],
-			runCommand[1:]...,
+		runner := sandbox.NativeRunner{}
+
+		cmd := runner.Command(
+			runCommand,
+			workspace,
+			effectiveRunLimits.WallTimeS,
 		)
 
 		cmd.Stdin = strings.NewReader(test.Stdin)
