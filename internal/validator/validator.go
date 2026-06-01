@@ -13,6 +13,7 @@ var (
 	ErrMissingTests            = errors.New("at least one test is required")
 	ErrInvalidSourceFilename   = errors.New("source_filename must be a single path component")
 	ErrInvalidArtifactFilename = errors.New("artifact_filename must be a single path component")
+	ErrUnknownLanguage         = errors.New("language must match a configured language id")
 )
 
 func isValidFilename(name string) bool {

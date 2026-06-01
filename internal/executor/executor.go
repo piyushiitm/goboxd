@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"errors"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -11,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/piyushiitm/goboxd/internal/config"
 	"github.com/piyushiitm/goboxd/internal/models"
+	"github.com/piyushiitm/goboxd/internal/validator"
 )
 
 func ReplacePlaceholders(
@@ -53,7 +53,7 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 	languageConfig, exists := languages[language]
 
 	if !exists {
-		return models.RunResponse{}, errors.New("unsupported language")
+		return models.RunResponse{}, validator.ErrUnknownLanguage
 	}
 
 	id := uuid.New().String()

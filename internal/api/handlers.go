@@ -220,12 +220,29 @@ func Run(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := executor.Execute(req)
-
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		switch err {
+
+		case validator.ErrUnknownLanguage:
+			writeError(
+				w,
+				"unknown_language",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		default:
+			writeError(
+				w,
+				"internal_error",
+				err.Error(),
+				http.StatusInternalServerError,
+			)
+		}
+
 		return
 	}
-
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 }
