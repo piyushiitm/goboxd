@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -31,8 +32,11 @@ func Readyz(w http.ResponseWriter, r *http.Request) {
 
 	results := map[string]interface{}{}
 	status := "ok"
+	fmt.Println("Loaded languages:")
 
 	for id, lang := range languages {
+
+		fmt.Println("Checking:", id)
 
 		cmd := exec.Command(
 			lang.VersionCommand.Command,
@@ -40,6 +44,9 @@ func Readyz(w http.ResponseWriter, r *http.Request) {
 		)
 
 		output, err := cmd.CombinedOutput()
+
+		fmt.Printf("Result %s -> err=%v\n", id, err)
+
 		if err != nil {
 
 			results[id] = map[string]interface{}{
@@ -48,7 +55,6 @@ func Readyz(w http.ResponseWriter, r *http.Request) {
 			}
 
 			status = "degraded"
-
 			continue
 		}
 
@@ -56,7 +62,6 @@ func Readyz(w http.ResponseWriter, r *http.Request) {
 			"ok":      true,
 			"version": strings.TrimSpace(string(output)),
 		}
-
 	}
 	w.Header().Set("Content-Type", "application/json")
 	if status == "degraded" {

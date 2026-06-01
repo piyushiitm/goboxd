@@ -17,6 +17,30 @@ py3:
     - "python3"
     - "{source}"
 
+c:
+  name: "C"
+
+  default_run_limits:
+    wall_time_s: 9
+    memory_kb: 102400
+    max_processes: 100
+
+  extension: ".c"
+
+  version_command:
+    command: "gcc"
+    args:
+      - "--version"
+
+  compile:
+    - "gcc"
+    - "{source}"
+    - "-o"
+    - "{artifact}"
+
+  run:
+    - "{artifact}"
+
 cpp:
   name: "C++"
 
@@ -44,12 +68,12 @@ cpp:
 java:
   name: "Java"
 
-  extension: ".java"
-
   default_run_limits:
     wall_time_s: 9
     memory_kb: 102400
     max_processes: 100
+
+  extension: ".java"
 
   version_command:
     command: "javac"
@@ -65,3 +89,66 @@ java:
     - "-cp"
     - "{workspace}"
     - "Main"
+
+bash:
+  name: "Bash"
+
+  default_run_limits:
+    wall_time_s: 9
+    memory_kb: 102400
+    max_processes: 100
+
+  extension: ".sh"
+
+  version_command:
+    command: "bash"
+    args:
+      - "--version"
+
+  run:
+    - "bash"
+    - "{source}"
+
+js:
+  name: "JavaScript (Node)"
+
+  default_run_limits:
+    wall_time_s: 9
+    memory_kb: 102400
+    max_processes: 100
+
+  extension: ".js"
+
+  version_command:
+    command: "node"
+    args:
+      - "--version"
+
+  run:
+    - "node"
+    - "{source}"
+
+verilog:
+  name: "Verilog"
+
+  default_run_limits:
+    wall_time_s: 9
+    memory_kb: 102400
+    max_processes: 100
+
+  extension: ".v"
+
+  version_command:
+    command: "iverilog"
+    args:
+      - "-V"
+
+  compile:
+    - "iverilog"
+    - "{source}"
+    - "-o"
+    - "{artifact}"
+
+  run:
+    - "vvp"
+    - "{artifact}"
