@@ -16,6 +16,13 @@ var (
 	ErrUnknownLanguage         = errors.New("language must match a configured language id")
 	ErrInvalidBuildFlag        = errors.New("invalid build flag")
 	ErrInvalidRunFlag          = errors.New("invalid run flag")
+	ErrSourceTooLarge          = errors.New("source exceeds maximum size")
+	ErrTooManyTests            = errors.New("too many tests")
+)
+
+const (
+	MaxSourceBytes = 262144
+	MaxTests       = 50
 )
 
 func isValidFilename(name string) bool {
@@ -58,6 +65,14 @@ func Validate(req models.RunRequest) error {
 
 	if !isValidFilename(req.ArtifactFilename) {
 		return ErrInvalidArtifactFilename
+	}
+
+	if len(req.Source) > MaxSourceBytes {
+		return ErrSourceTooLarge
+	}
+
+	if len(req.Tests) > MaxTests {
+		return ErrTooManyTests
 	}
 	return nil
 }

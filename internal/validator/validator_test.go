@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/piyushiitm/goboxd/internal/models"
@@ -100,5 +101,41 @@ func TestInvalidArtifactFilename(t *testing.T) {
 
 	if err != ErrInvalidArtifactFilename {
 		t.Fatal("expected ErrInvalidArtifactFilename")
+	}
+}
+
+func TestSourceTooLarge(t *testing.T) {
+
+	req := models.RunRequest{
+		Language: "py3",
+		Source:   strings.Repeat("a", MaxSourceBytes+1),
+		Tests: []models.TestCase{
+			{
+				ExpectedStdout: "",
+			},
+		},
+	}
+
+	err := Validate(req)
+
+	if err != ErrSourceTooLarge {
+		t.Fatal("expected ErrSourceTooLarge")
+	}
+}
+
+func TestTooManyTests(t *testing.T) {
+
+	tests := make([]models.TestCase, MaxTests+1)
+
+	req := models.RunRequest{
+		Language: "py3",
+		Source:   "print('hello')",
+		Tests:    tests,
+	}
+
+	err := Validate(req)
+
+	if err != ErrTooManyTests {
+		t.Fatal("expected ErrTooManyTests")
 	}
 }

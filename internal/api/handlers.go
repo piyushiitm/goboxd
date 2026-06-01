@@ -203,6 +203,22 @@ func Run(w http.ResponseWriter, r *http.Request) {
 				http.StatusBadRequest,
 			)
 
+		case validator.ErrSourceTooLarge:
+			writeError(
+				w,
+				"source_too_large",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		case validator.ErrTooManyTests:
+			writeError(
+				w,
+				"too_many_tests",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
 		default:
 			writeError(
 				w,

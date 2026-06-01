@@ -19,6 +19,8 @@ func TestReplaceSourcePlaceholder(t *testing.T) {
 		"source.py",
 		"program",
 		"workspace",
+		nil,
+		nil,
 	)
 
 	if result[0] != "python3" {
@@ -41,6 +43,8 @@ func TestReplaceArtifactPlaceholder(t *testing.T) {
 		"source.py",
 		"program",
 		"workspace",
+		nil,
+		nil,
 	)
 
 	if result[0] != "program" {
@@ -59,6 +63,8 @@ func TestReplaceWorkspacePlaceholder(t *testing.T) {
 		"source.py",
 		"program",
 		"workspace123",
+		nil,
+		nil,
 	)
 
 	if result[0] != "workspace123" {
@@ -79,6 +85,8 @@ func TestReplaceAllPlaceholders(t *testing.T) {
 		"main.cpp",
 		"app",
 		"workspace123",
+		nil,
+		nil,
 	)
 
 	if result[0] != "workspace123" {
@@ -208,5 +216,69 @@ func TestResolveLimitsAllOverrides(t *testing.T) {
 
 	if result.MaxProcesses != 50 {
 		t.Fatal("process override failed")
+	}
+}
+
+func TestReplaceBuildFlags(t *testing.T) {
+
+	command := []string{
+		"g++",
+		"{build_flags}",
+		"{source}",
+	}
+
+	result := ReplacePlaceholders(
+		command,
+		"main.cpp",
+		"program",
+		"workspace",
+		[]string{"-O2", "-Wall"},
+		nil,
+	)
+
+	if len(result) != 4 {
+		t.Fatal("unexpected command length")
+	}
+
+	if result[1] != "-O2" {
+		t.Fatal("first build flag missing")
+	}
+
+	if result[2] != "-Wall" {
+		t.Fatal("second build flag missing")
+	}
+
+	if result[3] != "main.cpp" {
+		t.Fatal("source missing")
+	}
+}
+
+func TestReplaceRunFlags(t *testing.T) {
+
+	command := []string{
+		"python3",
+		"{run_flags}",
+		"{source}",
+	}
+
+	result := ReplacePlaceholders(
+		command,
+		"main.py",
+		"program",
+		"workspace",
+		nil,
+		[]string{"-B"},
+	)
+
+	if len(result) != 3 {
+		t.Fatal("unexpected command length")
+	}
+
+	if result[1] != "-B" {
+		t.Fatal("run flag missing")
+	}
+
+	if result[2] != "main.py" {
+		t.Fatal("source missing")
 	}
 }
