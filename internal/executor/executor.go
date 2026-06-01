@@ -62,14 +62,26 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		return models.RunResponse{}, err
 	}
 
+	sourceName := req.SourceFilename
+
+	if sourceName == "" {
+		sourceName = "source" + languageConfig.Extension
+	}
+
 	sourceFile := filepath.Join(
 		workspace,
-		"source"+languageConfig.Extension,
+		sourceName,
 	)
+
+	artifactName := req.ArtifactFilename
+
+	if artifactName == "" {
+		artifactName = "program"
+	}
 
 	artifactFile := filepath.Join(
 		workspace,
-		"program",
+		artifactName,
 	)
 
 	err = os.WriteFile(
