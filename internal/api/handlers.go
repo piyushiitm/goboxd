@@ -57,14 +57,14 @@ func Run(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := executor.Execute(req)
-
 	err = validator.Validate(req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	response, err := executor.Execute(req)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

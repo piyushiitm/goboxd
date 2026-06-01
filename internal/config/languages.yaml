@@ -1,4 +1,4 @@
-python:
+py3:
   extension: ".py"
 
   run:
