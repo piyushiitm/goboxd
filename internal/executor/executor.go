@@ -141,6 +141,8 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		return models.RunResponse{}, err
 	}
 
+	defer os.RemoveAll(workspace)
+
 	sourceName := req.SourceFilename
 
 	if sourceName == "" {
