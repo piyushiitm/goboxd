@@ -2,7 +2,6 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os/exec"
 	"runtime"
@@ -32,21 +31,13 @@ func Readyz(w http.ResponseWriter, r *http.Request) {
 
 	results := map[string]interface{}{}
 	status := "ok"
-	fmt.Println("Loaded languages:")
-
 	for id, lang := range languages {
-
-		fmt.Println("Checking:", id)
-
 		cmd := exec.Command(
 			lang.VersionCommand.Command,
 			lang.VersionCommand.Args...,
 		)
 
 		output, err := cmd.CombinedOutput()
-
-		fmt.Printf("Result %s -> err=%v\n", id, err)
-
 		if err != nil {
 
 			results[id] = map[string]interface{}{
