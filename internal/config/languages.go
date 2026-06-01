@@ -22,8 +22,12 @@ type Language struct {
 	Extension        string         `yaml:"extension"`
 	VersionCommand   VersionCommand `yaml:"version_command"`
 	DefaultRunLimits Limits         `yaml:"default_run_limits"`
-	Compile          []string       `yaml:"compile"`
-	Run              []string       `yaml:"run"`
+
+	AllowedBuildFlags []string `yaml:"allowed_build_flags"`
+	AllowedRunFlags   []string `yaml:"allowed_run_flags"`
+
+	Compile []string `yaml:"compile"`
+	Run     []string `yaml:"run"`
 }
 
 //go:embed languages.yaml

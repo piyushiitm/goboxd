@@ -228,6 +228,22 @@ func Run(w http.ResponseWriter, r *http.Request) {
 				http.StatusBadRequest,
 			)
 
+		case validator.ErrInvalidBuildFlag:
+			writeError(
+				w,
+				"invalid_build_flag",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
+		case validator.ErrInvalidRunFlag:
+			writeError(
+				w,
+				"invalid_run_flag",
+				err.Error(),
+				http.StatusBadRequest,
+			)
+
 		default:
 			writeError(
 				w,

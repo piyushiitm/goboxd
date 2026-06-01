@@ -19,11 +19,23 @@ func ReplacePlaceholders(
 	sourceFile string,
 	artifactFile string,
 	workspace string,
+	buildFlags []string,
+	runFlags []string,
 ) []string {
 
-	result := make([]string, len(command))
+	result := []string{}
 
-	for i, part := range command {
+	for _, part := range command {
+
+		if part == "{build_flags}" {
+			result = append(result, buildFlags...)
+			continue
+		}
+
+		if part == "{run_flags}" {
+			result = append(result, runFlags...)
+			continue
+		}
 
 		part = strings.ReplaceAll(
 			part,
@@ -43,12 +55,11 @@ func ReplacePlaceholders(
 			workspace,
 		)
 
-		result[i] = part
+		result = append(result, part)
 	}
 
 	return result
 }
-
 func ResolveLimits(
 	defaults config.Limits,
 	override *models.Limits,
@@ -89,6 +100,29 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 	if !exists {
 		return models.RunResponse{}, validator.ErrUnknownLanguage
 	}
+
+	if req.Build != nil {
+
+		if !validator.ValidateFlags(
+			req.Build.Flags,
+			languageConfig.AllowedBuildFlags,
+		) {
+			return models.RunResponse{},
+				validator.ErrInvalidBuildFlag
+		}
+	}
+
+	if req.Run != nil {
+
+		if !validator.ValidateFlags(
+			req.Run.Flags,
+			languageConfig.AllowedRunFlags,
+		) {
+			return models.RunResponse{},
+				validator.ErrInvalidRunFlag
+		}
+	}
+
 	effectiveRunLimits := ResolveLimits(
 		languageConfig.DefaultRunLimits,
 		nil,
@@ -149,11 +183,19 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 
 	if len(languageConfig.Compile) > 0 {
 
+		buildFlags := []string{}
+
+		if req.Build != nil {
+			buildFlags = req.Build.Flags
+		}
+
 		compileCommand := ReplacePlaceholders(
 			languageConfig.Compile,
 			sourceFile,
 			artifactFile,
 			workspace,
+			buildFlags,
+			nil,
 		)
 
 		cmd := exec.Command(
@@ -202,11 +244,19 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 
 	for _, test := range req.Tests {
 		testStart := time.Now()
+		runFlags := []string{}
+
+		if req.Run != nil {
+			runFlags = req.Run.Flags
+		}
+
 		runCommand := ReplacePlaceholders(
 			languageConfig.Run,
 			sourceFile,
 			artifactFile,
 			workspace,
+			nil,
+			runFlags,
 		)
 
 		ctx, cancel := context.WithTimeout(

@@ -13,8 +13,15 @@ py3:
     args:
       - "--version"
 
+  allowed_build_flags: []
+
+  allowed_run_flags:
+    - "-B"
+    - "-O"
+
   run:
     - "python3"
+    - "{run_flags}"
     - "{source}"
 
 c:
@@ -32,8 +39,20 @@ c:
     args:
       - "--version"
 
+  allowed_build_flags:
+    - "-O0"
+    - "-O1"
+    - "-O2"
+    - "-O3"
+    - "-Wall"
+    - "-Wextra"
+    - "-std=*"
+
+  allowed_run_flags: []
+
   compile:
     - "gcc"
+    - "{build_flags}"
     - "{source}"
     - "-o"
     - "{artifact}"
@@ -56,8 +75,20 @@ cpp:
     args:
       - "--version"
 
+  allowed_build_flags:
+    - "-O0"
+    - "-O1"
+    - "-O2"
+    - "-O3"
+    - "-Wall"
+    - "-Wextra"
+    - "-std=*"
+
+  allowed_run_flags: []
+
   compile:
     - "g++"
+    - "{build_flags}"
     - "{source}"
     - "-o"
     - "{artifact}"
@@ -80,12 +111,18 @@ java:
     args:
       - "-version"
 
+  allowed_build_flags: []
+
+  allowed_run_flags: []
+
   compile:
     - "javac"
+    - "{build_flags}"
     - "{source}"
 
   run:
     - "java"
+    - "{run_flags}"
     - "-cp"
     - "{workspace}"
     - "Main"
@@ -104,6 +141,10 @@ bash:
     command: "bash"
     args:
       - "--version"
+
+  allowed_build_flags: []
+
+  allowed_run_flags: []
 
   run:
     - "bash"
@@ -124,8 +165,13 @@ js:
     args:
       - "--version"
 
+  allowed_build_flags: []
+
+  allowed_run_flags: []
+
   run:
     - "node"
+    - "{run_flags}"
     - "{source}"
 
 verilog:
@@ -143,8 +189,14 @@ verilog:
     args:
       - "-V"
 
+  allowed_build_flags:
+    - "-Wall"
+
+  allowed_run_flags: []
+
   compile:
     - "iverilog"
+    - "{build_flags}"
     - "{source}"
     - "-o"
     - "{artifact}"
