@@ -1,4 +1,11 @@
 py3:
+  name: "Python 3"
+
+  default_run_limits:
+    wall_time_s: 9
+    memory_kb: 102400
+    max_processes: 100
+
   extension: ".py"
 
   version_command:
@@ -11,6 +18,13 @@ py3:
     - "{source}"
 
 cpp:
+  name: "C++"
+
+  default_run_limits:
+    wall_time_s: 9
+    memory_kb: 102400
+    max_processes: 100
+
   extension: ".cpp"
 
   version_command:
@@ -25,4 +39,4 @@ cpp:
     - "{artifact}"
 
   run:
-   - "{artifact}"
+    - "{artifact}"

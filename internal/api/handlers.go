@@ -80,7 +80,7 @@ func Info(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	languageList := []map[string]string{}
+	languageList := []map[string]interface{}{}
 
 	for id, lang := range languages {
 
@@ -99,9 +99,11 @@ func Info(w http.ResponseWriter, r *http.Request) {
 
 		languageList = append(
 			languageList,
-			map[string]string{
-				"id":      id,
-				"version": version,
+			map[string]interface{}{
+				"id":                 id,
+				"name":               lang.Name,
+				"version":            version,
+				"default_run_limits": lang.DefaultRunLimits,
 			},
 		)
 	}
@@ -113,6 +115,11 @@ func Info(w http.ResponseWriter, r *http.Request) {
 			"go_version": runtime.Version(),
 		},
 		"languages": languageList,
+		"limits": map[string]int{
+			"max_source_bytes":    262144,
+			"max_tests":           50,
+			"max_concurrent_jobs": 16,
+		},
 	}
 
 	w.WriteHeader(http.StatusOK)
