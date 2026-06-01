@@ -31,12 +31,19 @@ RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/goboxd ./cmd/gobox
 # ---- Runtime image ----
 FROM debian:${DEBIAN_VERSION}-slim AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends \
+        bash \
         ca-certificates \
         libnl-route-3-200 \
-        libprotobuf32 \
-        python3 \
-        g++ \
-    && rm -rf /var/lib/apt/lists/*
+        libprotobuf32 && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY scripts/lang_install /tmp/lang_install
+
+RUN for f in /tmp/lang_install/*.sh; do \
+        bash "$f"; \
+    done && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY --from=nsjail-builder /usr/local/bin/nsjail /usr/local/bin/nsjail
 COPY --from=builder        /out/goboxd          /usr/local/bin/goboxd
 EXPOSE 8080

@@ -18,6 +18,7 @@ func ReplacePlaceholders(
 	command []string,
 	sourceFile string,
 	artifactFile string,
+	workspace string,
 ) []string {
 
 	result := make([]string, len(command))
@@ -34,6 +35,12 @@ func ReplacePlaceholders(
 			part,
 			"{artifact}",
 			artifactFile,
+		)
+
+		part = strings.ReplaceAll(
+			part,
+			"{workspace}",
+			workspace,
 		)
 
 		result[i] = part
@@ -146,6 +153,7 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			languageConfig.Compile,
 			sourceFile,
 			artifactFile,
+			workspace,
 		)
 
 		cmd := exec.Command(
@@ -198,6 +206,7 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			languageConfig.Run,
 			sourceFile,
 			artifactFile,
+			workspace,
 		)
 
 		ctx, cancel := context.WithTimeout(

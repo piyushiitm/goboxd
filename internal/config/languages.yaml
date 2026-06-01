@@ -40,3 +40,28 @@ cpp:
 
   run:
     - "{artifact}"
+
+java:
+  name: "Java"
+
+  extension: ".java"
+
+  default_run_limits:
+    wall_time_s: 9
+    memory_kb: 102400
+    max_processes: 100
+
+  version_command:
+    command: "javac"
+    args:
+      - "-version"
+
+  compile:
+    - "javac"
+    - "{source}"
+
+  run:
+    - "java"
+    - "-cp"
+    - "{workspace}"
+    - "Main"
