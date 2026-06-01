@@ -165,16 +165,30 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		}, nil
 	}
 
-	actual := strings.TrimSpace(string(output))
-	expected := strings.TrimSpace(req.Tests[0].ExpectedStdout)
+	results := []models.TestResult{}
+	overallStatus := "accepted"
 
-	status := "accepted"
+	for _, test := range req.Tests {
 
-	if actual != expected {
-		status = "wrong_output"
+		actual := strings.TrimSpace(string(output))
+		expected := strings.TrimSpace(test.ExpectedStdout)
+
+		testStatus := "accepted"
+
+		if actual != expected {
+			testStatus = "wrong_output"
+			overallStatus = "wrong_output"
+		}
+
+		results = append(results, models.TestResult{
+			Status: testStatus,
+			Stdout: actual,
+			Stderr: "",
+		})
 	}
 
 	return models.RunResponse{
-		Status: status,
+		Status: overallStatus,
+		Tests:  results,
 	}, nil
 }
