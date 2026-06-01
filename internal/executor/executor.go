@@ -117,9 +117,7 @@ func Execute(language string, source string) (models.RunResponse, error) {
 			)
 
 			return models.RunResponse{
-				Stdout:   "",
-				Stderr:   errorMessage,
-				ExitCode: 1,
+				Status: "compile_error",
 			}, nil
 		}
 	}
@@ -161,15 +159,11 @@ func Execute(language string, source string) (models.RunResponse, error) {
 		)
 
 		return models.RunResponse{
-			Stdout:   "",
-			Stderr:   errorMessage,
-			ExitCode: 1,
+			Status: "runtime_error",
 		}, nil
 	}
 
 	return models.RunResponse{
-		Stdout:   string(output),
-		Stderr:   "",
-		ExitCode: 0,
+		Status: "accepted",
 	}, nil
 }

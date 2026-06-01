@@ -9,6 +9,8 @@ import (
 
 func main() {
 	http.HandleFunc("/healthz", api.Healthz)
+	http.HandleFunc("/readyz", api.Readyz)
+	http.HandleFunc("/info", api.Info)
 	http.HandleFunc("/run", api.Run)
 
 	log.Println("server running on :8080")
