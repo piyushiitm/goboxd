@@ -6,10 +6,16 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type VersionCommand struct {
+	Command string   `yaml:"command"`
+	Args    []string `yaml:"args"`
+}
+
 type Language struct {
-	Extension string   `yaml:"extension"`
-	Compile   []string `yaml:"compile"`
-	Run       []string `yaml:"run"`
+	Extension      string         `yaml:"extension"`
+	VersionCommand VersionCommand `yaml:"version_command"`
+	Compile        []string       `yaml:"compile"`
+	Run            []string       `yaml:"run"`
 }
 
 //go:embed languages.yaml

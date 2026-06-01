@@ -2,7 +2,6 @@ package executor
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -124,51 +123,31 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		}
 	}
 
-	runCommand := ReplacePlaceholders(
-		languageConfig.Run,
-		sourceFile,
-		artifactFile,
-	)
-
-	cmd := exec.Command(
-		runCommand[0],
-		runCommand[1:]...,
-	)
-
-	output, err := cmd.CombinedOutput()
-
-	fmt.Println("Created:", sourceFile)
-	fmt.Println("Language:", language)
-
-	if err != nil {
-
-		errorMessage := string(output)
-
-		if errorMessage == "" {
-			errorMessage = err.Error()
-		}
-
-		errorMessage = strings.ReplaceAll(
-			errorMessage,
-			sourceFile,
-			"source"+languageConfig.Extension,
-		)
-
-		errorMessage = strings.ReplaceAll(
-			errorMessage,
-			filepath.Dir(sourceFile)+"/",
-			"",
-		)
-
-		return models.RunResponse{
-			Status: "runtime_error",
-		}, nil
-	}
-
 	results := []models.TestResult{}
 	overallStatus := "accepted"
 
 	for _, test := range req.Tests {
+
+		runCommand := ReplacePlaceholders(
+			languageConfig.Run,
+			sourceFile,
+			artifactFile,
+		)
+
+		cmd := exec.Command(
+			runCommand[0],
+			runCommand[1:]...,
+		)
+
+		cmd.Stdin = strings.NewReader(test.Stdin)
+
+		output, err := cmd.CombinedOutput()
+
+		if err != nil {
+			return models.RunResponse{
+				Status: "runtime_error",
+			}, nil
+		}
 
 		actual := strings.TrimSpace(string(output))
 		expected := strings.TrimSpace(test.ExpectedStdout)

@@ -1,12 +1,22 @@
 py3:
   extension: ".py"
 
+  version_command:
+    command: "python3"
+    args:
+      - "--version"
+
   run:
     - "python3"
     - "{source}"
 
 cpp:
   extension: ".cpp"
+
+  version_command:
+    command: "g++"
+    args:
+      - "--version"
 
   compile:
     - "g++"
@@ -15,4 +25,4 @@ cpp:
     - "{artifact}"
 
   run:
-    - "{artifact}"
+   - "{artifact}"
