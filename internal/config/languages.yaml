@@ -98,6 +98,7 @@ cpp:
 
 java:
   name: "Java"
+  default_source_filename: "Main.java"
 
   default_run_limits:
     wall_time_s: 9
@@ -124,7 +125,7 @@ java:
     - "java"
     - "{run_flags}"
     - "-cp"
-    - "{workspace}"
+    - "."
     - "Main"
 
 bash:

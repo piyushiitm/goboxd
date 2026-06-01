@@ -202,6 +202,10 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 		sourceName = "source" + languageConfig.Extension
 	}
 
+	if languageConfig.DefaultSourceFilename != "" {
+		sourceName = languageConfig.DefaultSourceFilename
+	}
+
 	sourceFile := filepath.Join(
 		workspace,
 		sourceName,
