@@ -14,6 +14,12 @@ import (
 	"github.com/piyushiitm/goboxd/internal/validator"
 )
 
+const (
+	MaxStdoutBytes = 64 * 1024
+	MaxStderrBytes = 64 * 1024
+	MaxOutputBytes = 128 * 1024
+)
+
 func ReplacePlaceholders(
 	command []string,
 	sourceFile string,
@@ -60,6 +66,7 @@ func ReplacePlaceholders(
 
 	return result
 }
+
 func ResolveLimits(
 	defaults config.Limits,
 	override *models.Limits,
@@ -84,6 +91,51 @@ func ResolveLimits(
 	}
 
 	return result
+}
+
+type LimitedBuffer struct {
+	Data  []byte
+	Limit int
+}
+
+func (b *LimitedBuffer) Write(p []byte) (int, error) {
+
+	remaining := b.Limit - len(b.Data)
+
+	if remaining > 0 {
+
+		if len(p) > remaining {
+			b.Data = append(
+				b.Data,
+				p[:remaining]...,
+			)
+		} else {
+			b.Data = append(
+				b.Data,
+				p...,
+			)
+		}
+	}
+
+	return len(p), nil
+}
+
+func NotExecutedTests(
+	tests []models.TestCase,
+) []models.TestResult {
+
+	results := make(
+		[]models.TestResult,
+		len(tests),
+	)
+
+	for i := range tests {
+		results[i] = models.TestResult{
+			Status: "not_executed",
+		}
+	}
+
+	return results
 }
 
 func Execute(req models.RunRequest) (models.RunResponse, error) {
@@ -205,11 +257,19 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			compileCommand[1:]...,
 		)
 
-		output, err := cmd.CombinedOutput()
+		var stdout LimitedBuffer
+		var stderr LimitedBuffer
 
+		stdout.Limit = MaxStdoutBytes
+		stderr.Limit = MaxStderrBytes
+
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+
+		err = cmd.Run()
 		if err != nil {
 
-			errorMessage := string(output)
+			errorMessage := string(stderr.Data)
 
 			if errorMessage == "" {
 				errorMessage = err.Error()
@@ -228,13 +288,14 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			)
 
 			return models.RunResponse{
-				Status: "compile_error",
+				Status: "build_failed",
 				Build: &models.BuildResult{
-					Status:     "compile_error",
+					Status:     "failed",
 					Stdout:     "",
 					Stderr:     errorMessage,
 					DurationMS: time.Since(buildStart).Milliseconds(),
 				},
+				Tests: NotExecutedTests(req.Tests),
 			}, nil
 		}
 	}
@@ -275,19 +336,27 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 
 		cmd.Stdin = strings.NewReader(test.Stdin)
 
-		output, err := cmd.CombinedOutput()
+		var stdout LimitedBuffer
+		var stderr LimitedBuffer
 
+		stdout.Limit = MaxStdoutBytes
+		stderr.Limit = MaxStderrBytes
+
+		cmd.Stdout = &stdout
+		cmd.Stderr = &stderr
+
+		err := cmd.Run()
 		if ctx.Err() == context.DeadlineExceeded {
 
 			results = append(results, models.TestResult{
-				Status:       "time_limit_exceeded",
+				Status:       "time_exceeded",
 				Stdout:       "",
 				Stderr:       "",
 				DurationMS:   time.Since(testStart).Milliseconds(),
 				MemoryPeakKB: 0,
 			})
 
-			overallStatus = "time_limit_exceeded"
+			overallStatus = "time_exceeded"
 
 			continue
 		}
@@ -296,10 +365,18 @@ func Execute(req models.RunRequest) (models.RunResponse, error) {
 			return models.RunResponse{
 				Status: "runtime_error",
 				Build:  buildResult,
+				Tests: []models.TestResult{
+					{
+						Status: "runtime_error",
+						Stderr: string(stderr.Data),
+					},
+				},
 			}, nil
 		}
 
-		actual := strings.TrimSpace(string(output))
+		actual := strings.TrimSpace(
+			string(stdout.Data),
+		)
 		expected := strings.TrimSpace(test.ExpectedStdout)
 
 		testStatus := "accepted"
