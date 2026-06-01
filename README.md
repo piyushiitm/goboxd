@@ -1,68 +1,89 @@
-# goboxd
+# Goboxd
 
-goboxd is a Go HTTP service that compiles and executes untrusted code inside isolated sandboxes.
-
-## Framework
-
-net/http
-
-Reason: the API is small and does not require additional routing features.
+Sandboxed multi-language code execution service.
 
 ## Supported Languages
 
-- Python 3
-- C
-- C++
-- Java
-- Bash
-- JavaScript (Node.js)
-- Verilog
+| Language | ID |
+|----------|----|
+| Python 3 | py3 |
+| C | c |
+| C++ | cpp |
+| Java | java |
+| Bash | bash |
+| JavaScript | js |
+| Verilog | verilog |
 
-## Requirements
+## Quick Start
 
-- Docker
-- Docker Compose
-
-## Run
-
-Build:
+### Build
 
 ```bash
-make build
+docker build -t goboxd .
 ```
 
-Start:
+### Run
 
 ```bash
-make run
+docker run --rm --privileged -p 8080:8080 goboxd
 ```
 
-Health check:
+### Health Check
 
 ```bash
 curl localhost:8080/healthz
 ```
 
-## Tests
+### Readiness Check
 
 ```bash
-make test
+curl localhost:8080/readyz | jq
 ```
 
-## Load Testing
+### Info
 
 ```bash
-make load
+curl localhost:8080/info | jq
 ```
 
-## Documentation
+### Execute Python
 
-- docs/api.md
-- docs/languages.md
-- docs/security.md
-- docs/architecture.md
-- docs/benchmarks.md
+```bash
+curl -X POST localhost:8080/run \
+-H "Content-Type: application/json" \
+-d '{
+  "language":"py3",
+  "source":"print(\"hello\")",
+  "tests":[
+    {
+      "stdin":"",
+      "expected_stdout":"hello"
+    }
+  ]
+}'
+```
 
-## License
+## Architecture
 
-GPL-3.0
+Request
+→ Validation
+→ Compilation (optional)
+→ NSJail Sandbox
+→ Test Execution
+→ Result Aggregation
+→ Response
+
+## Sandbox
+
+Goboxd executes user code through NSJail inside a Docker container.
+
+Current protections:
+- Filesystem isolation
+- Namespace isolation
+- Time limits
+- Workspace isolation
+
+Future protections:
+- Memory limits
+- Process limits
+- Advanced cgroup controls
